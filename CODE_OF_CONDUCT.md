@@ -65,7 +65,7 @@ The following conduct is strictly prohibited:
 
 ### How to Report
 1. Contact your immediate supervisor
-2. Email security@progredisystems.com
+2. Email Security
 3. Use our anonymous reporting hotline
 4. Contact the compliance officer directly
 
