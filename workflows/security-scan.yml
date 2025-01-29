@@ -1,3 +1,4 @@
+---
 name: "Security Scan"
 on:
   push:
@@ -23,3 +24,4 @@ jobs:
         uses: github/codeql-action/analyze@v2
         with:
           languages: javascript, python
+---
