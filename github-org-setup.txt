@@ -1,0 +1,47 @@
+.github/
+├── ISSUE_TEMPLATE/
+│   ├── bug_report.md
+│   ├── feature_request.md
+│   └── security_vulnerability.md
+├── workflows/
+│   ├── security-scan.yml
+│   ├── dependency-review.yml
+│   └── compliance-check.yml
+├── SECURITY.md
+├── CODE_OF_CONDUCT.md
+├── CONTRIBUTING.md
+├── SUPPORT.md
+├── GOVERNANCE.md
+└── README.md
+
+# Example SECURITY.md content:
+# Security Policy
+
+## Supported Versions
+| Version | Supported          |
+| ------- | ------------------ |
+| 1.0.x   | :white_check_mark: |
+
+## Reporting a Vulnerability
+1. Do NOT open an issue
+2. Email security@progredi.systems
+3. Expect response within 24 hours
+4. Security team will coordinate disclosure
+
+# Example workflow:
+name: "Security Scan"
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+    
+jobs:
+  security:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Run security scan
+        uses: snyk/actions/node@master
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
