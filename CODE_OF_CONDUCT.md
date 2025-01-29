@@ -110,4 +110,4 @@ This Code of Conduct is reviewed annually and updated as needed. All employees m
 ## Contact Information
 
 For questions or concerns about this Code of Conduct:
-- Email: security@progredisystems.com
+- Email Security
