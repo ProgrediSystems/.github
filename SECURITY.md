@@ -3,7 +3,7 @@
 ## Reporting a Vulnerability
 
 1. Do NOT open a public issue
-2. Email: security@progredisystems.com
+2. Email Security
 3. Include:
    - Description of the vulnerability
    - Steps to reproduce
