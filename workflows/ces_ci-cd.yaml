@@ -62,6 +62,20 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: us-east-1
           
+      - name: Fetch deployment secrets
+        run: |
+          SECRETS=$(aws ssm get-parameter \
+            --name "/${AWS::StackName}/${Environment}/deploy-secrets" \
+            --with-decryption \
+            --query 'Parameter.Value' \
+            --output text)
+          
+          # Set secrets as environment variables
+          echo "WEBSITE_BUCKET=$(echo $SECRETS | jq -r '.WEBSITE_BUCKET')" >> $GITHUB_ENV
+          echo "CLOUDFRONT_ID=$(echo $SECRETS | jq -r '.CLOUDFRONT_ID')" >> $GITHUB_ENV
+          echo "LAMBDA_FUNCTION=$(echo $SECRETS | jq -r '.LAMBDA_FUNCTION')" >> $GITHUB_ENV
+          echo "DOMAIN_NAME=$(echo $SECRETS | jq -r '.DOMAIN_NAME')" >> $GITHUB_ENV
+          
       - name: Build and Deploy Frontend
         run: |
           npm ci
@@ -79,7 +93,7 @@ jobs:
       - name: Update Infrastructure
         run: |
           aws cloudformation deploy \
-            --template-file infrastructure/ces_template.yaml \
+            --template-file infrastructure/template.yaml \
             --stack-name client-engagement-system-${{ github.ref == 'refs/heads/main' && 'prod' || 'dev' }} \
             --parameter-overrides \
               Environment=${{ github.ref == 'refs/heads/main' && 'prod' || 'dev' }} \
