@@ -24,7 +24,7 @@
 
 ## Reporting a Vulnerability
 1. Do NOT open an issue
-2. Email security@progredi.systems
+2. Email: Security
 3. Expect response within 24 hours
 4. Security team will coordinate disclosure
 
