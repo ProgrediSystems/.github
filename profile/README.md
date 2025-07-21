@@ -1,4 +1,4 @@
-# Progredi Systems 🚀 Intelligence that Transforms
+# Progredi Systems 🚀
 
 [![AI-First](https://img.shields.io/badge/Approach-AI%20First-blue)](https://github.com/progredi-systems)
 
