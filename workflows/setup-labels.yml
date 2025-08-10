@@ -1,105 +1,72 @@
-ai-powered-labeling:
+# File: .github/workflows/setup-labels.yml  
+# Run this once to create standard labels across repositories
+
+name: Setup ProgrediSystems Standard Labels
+on:
+  workflow_dispatch:  # Run manually
+  repository_dispatch:
+    types: [setup-labels]
+
+jobs:
+  create-labels:
     runs-on: ubuntu-latest
-    if: github.event.action == 'opened'
     steps:
-      - name: Auto-Apply Smart Labels
+      - name: Create ProgrediSystems Standard Labels
         uses: actions/github-script@v7
         with:
           script: |
-            const issue = context.payload.issue;
-            const title = issue.title.toLowerCase();
-            const body = (issue.body || '').toLowerCase();
-            const repo = context.repo.repo;
-            
-            const labelsToAdd = [];
-            
-            // AI-powered label detection
-            
-            // Revenue opportunity detection
-            if (title.includes('$') || title.includes('contract') || title.includes('rfp') || 
-                title.includes('revenue') || title.includes('opportunity')) {
-              labelsToAdd.push('revenue-opportunity');
-            }
-            
-            // Government contract detection
-            if (title.includes('government') || title.includes('dod') || title.includes('army') || 
-                title.includes('navy') || title.includes('air force') || title.includes('federal')) {
-              labelsToAdd.push('government-rfp');
-            }
-            
-            // Feature development detection
-            if (title.includes('feature') || title.includes('add') || title.includes('new') ||
-                title.includes('implement') || title.includes('create')) {
-              labelsToAdd.push('feature');
-            }
-            
-            // AI/ML detection
-            if (title.includes('ai') || title.includes('ml') || title.includes('machine learning') ||
-                title.includes('artificial intelligence') || title.includes('automation')) {
-              labelsToAdd.push('ai-enhancement');
-            }
-            
-            // Bug detection
-            if (title.includes('bug') || title.includes('fix') || title.includes('error') ||
-                title.includes('issue') || title.includes('problem')) {
-              labelsToAdd.push('bug');
-            }
-            
-            // CMMC/Compliance detection
-            if (title.includes('cmmc') || title.includes('compliance') || title.includes('security') ||
-                title.includes('certification') || repo === 'cmmc-compliance') {
-              labelsToAdd.push('cmmc');
-            }
-            
-            // Priority detection based on value
-            if (title.match(/\$[1-9][0-9]*[Mm]/) || title.includes('critical') || title.includes('urgent')) {
-              labelsToAdd.push('priority-high');
-            } else if (title.match(/\$[1-9][0-9]*[Bb]/) || title.includes('major')) {
-              labelsToAdd.push('priority-critical');
-            }
-            
-            // Repository-specific labels
-            if (repo === 'core-contracts') {
-              labelsToAdd.push('contract-opportunity');
-            } else if (repo === 'client-engagement-system') {
-              labelsToAdd.push('client-opportunity');
-            } else if (repo === 'progredi-cai-m') {
-              labelsToAdd.push('defense-contract');
-            }
-            
-            // Apply detected labels
-            if (labelsToAdd.length > 0) {
-              console.log(`Auto-applying labels: ${labelsToAdd.join(', ')}`);
+            const labels = [
+              // Revenue Labels (Green family)
+              { name: 'revenue-opportunity', color: '22c55e', description: '💰 Potential revenue generating opportunity' },
+              { name: 'contract-opportunity', color: '16a34a', description: '🏛️ Government contract opportunity' },
+              { name: 'client-opportunity', color: '65a30d', description: '🤝 Commercial client opportunity' },
+              { name: 'cost-reduction', color: '84cc16', description: '💵 Reduces operational costs' },
               
+              // Development Labels (Blue family)
+              { name: 'feature', color: '3b82f6', description: '🚀 New feature development' },
+              { name: 'enhancement', color: '6366f1', description: '⚡ Improve existing functionality' },
+              { name: 'ai-enhancement', color: '8b5cf6', description: '🤖 AI/ML enhancement opportunity' },
+              { name: 'bug', color: 'ef4444', description: '🐛 Bug fix required' },
+              
+              // Defense/Government Labels (Purple family)
+              { name: 'government-rfp', color: '7c3aed', description: '🏛️ Government RFP or contract' },
+              { name: 'cmmc', color: '6d28d9', description: '🛡️ CMMC compliance related' },
+              { name: 'defense-contract', color: '5b21b6', description: '⚔️ Defense/military contract' },
+              { name: 'compliance', color: '4c1d95', description: '📋 Compliance or certification' },
+              
+              // Priority Labels (Traffic light colors)
+              { name: 'priority-critical', color: 'dc2626', description: '🔴 Critical priority - revenue/business impact' },
+              { name: 'priority-high', color: 'ea580c', description: '🟠 High priority' },
+              { name: 'priority-medium', color: 'ca8a04', description: '🟡 Medium priority' },
+              { name: 'priority-low', color: '16a34a', description: '🟢 Low priority' },
+              
+              // Process Labels (Gray family)
+              { name: 'needs-triage', color: '6b7280', description: '🔍 Needs initial review and prioritization' },
+              { name: 'blocked', color: '374151', description: '🚫 Blocked by external dependency' },
+              { name: 'in-review', color: '4b5563', description: '👀 Under review' },
+              { name: 'sprint-ready', color: '059669', description: '✅ Ready for sprint inclusion' }
+            ];
+
+            let created = 0;
+            let existing = 0;
+            
+            for (const label of labels) {
               try {
-                await github.rest.issues.addLabels({
+                await github.rest.issues.createLabel({
                   owner: context.repo.owner,
                   repo: context.repo.repo,
-                  issue_number: issue.number,
-                  labels: labelsToAdd
+                  ...label
                 });
-                
-                // Add a comment explaining the auto-labeling
-                const labelComment = `## 🏷️ AI Auto-Labeling Applied
-                
-                The following labels were automatically applied based on issue analysis:
-                ${labelsToAdd.map(label => `- \`${label}\``).join('\n')}
-                
-                **Reasoning**: Content analysis detected keywords related to these categories.
-                
-                Feel free to add or remove labels as needed. The project boards will update automatically.
-                
-                ---
-                *🤖 Auto-generated by ProgrediSystems AI labeling system*`;
-                
-                await github.rest.issues.createComment({
-                  issue_number: context.issue.number,
-                  owner: context.repo.owner,
-                  repo: context.repo.repo,
-                  body: labelComment
-                });
-                
+                console.log(`✅ Created label: ${label.name}`);
+                created++;
               } catch (error) {
-                console.error('Error applying labels:', error);
+                if (error.status === 422) {
+                  console.log(`ℹ️ Label ${label.name} already exists`);
+                  existing++;
+                } else {
+                  console.error(`❌ Error creating label ${label.name}:`, error.message);
+                }
               }
             }
+            
+            console.log(`\n📊 Summary: ${created} labels created, ${existing} already existed`);
