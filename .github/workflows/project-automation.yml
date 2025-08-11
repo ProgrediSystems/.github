@@ -1,12 +1,10 @@
-# File: .github/workflows/project-automation.yml
-# Place this in your ProgrediSystems/.github repository
+# File: .github/workflows/ai-enhanced-automation.yml
+# Replace or enhance your existing project-automation.yml with this version
 
-name: ProgrediSystems Project Board Automation
+name: ProgrediSystems AI-Enhanced Project Automation
 on:
   issues:
-    types: [opened, labeled, closed, reopened]
-  pull_request:
-    types: [opened, closed, merged]
+    types: [opened, labeled, edited, closed, reopened]
 
 jobs:
   auto-assign-to-projects:
@@ -17,10 +15,8 @@ jobs:
         if: |
           contains(github.event.issue.labels.*.name, 'revenue-opportunity') ||
           contains(github.event.issue.labels.*.name, 'contract-opportunity') ||
-          contains(github.event.issue.labels.*.name, 'client-opportunity') ||
           contains(github.event.issue.title, '$') ||
           contains(github.event.issue.title, 'contract') ||
-          contains(github.event.issue.title, 'RFP') ||
           contains(github.event.issue.title, 'revenue')
         uses: actions/add-to-project@v0.5.0
         with:
@@ -32,12 +28,10 @@ jobs:
           contains(github.event.issue.labels.*.name, 'feature') ||
           contains(github.event.issue.labels.*.name, 'enhancement') ||
           contains(github.event.issue.labels.*.name, 'ai-enhancement') ||
-          contains(github.event.issue.labels.*.name, 'bug') ||
           contains(github.event.issue.title, 'feature') ||
-          contains(github.event.issue.title, 'enhancement') ||
-          contains(github.event.issue.title, 'AI') ||
-          github.repository == 'ProgrediSystems/progredi-core' ||
-          github.repository == 'ProgrediSystems/ai-capabilities'
+          contains(github.event.issue.title, 'add') ||
+          contains(github.event.issue.title, 'implement') ||
+          github.repository == 'ProgrediSystems/progredi-core'
         uses: actions/add-to-project@v0.5.0
         with:
           project-url: https://github.com/orgs/ProgrediSystems/projects/5
@@ -46,116 +40,26 @@ jobs:
       - name: Add to Defense Market Focus (#6)
         if: |
           contains(github.event.issue.labels.*.name, 'government-rfp') ||
-          contains(github.event.issue.labels.*.name, 'cmmc') ||
           contains(github.event.issue.labels.*.name, 'defense-contract') ||
-          contains(github.event.issue.labels.*.name, 'compliance') ||
+          contains(github.event.issue.labels.*.name, 'cmmc') ||
           contains(github.event.issue.title, 'government') ||
           contains(github.event.issue.title, 'DoD') ||
           contains(github.event.issue.title, 'Army') ||
           contains(github.event.issue.title, 'Navy') ||
+          contains(github.event.issue.title, 'Air Force') ||
           contains(github.event.issue.title, 'CMMC') ||
           github.repository == 'ProgrediSystems/cmmc-compliance' ||
-          github.repository == 'ProgrediSystems/progredi-cai-m' ||
-          github.repository == 'ProgrediSystems/core-readiness'
+          github.repository == 'ProgrediSystems/progredi-cai-m'
         uses: actions/add-to-project@v0.5.0
         with:
           project-url: https://github.com/orgs/ProgrediSystems/projects/6
           github-token: ${{ secrets.GITHUB_TOKEN }}
 
-  revenue-impact-calculator:
-    runs-on: ubuntu-latest
-    if: |
-      contains(github.event.issue.labels.*.name, 'revenue-opportunity') ||
-      contains(github.event.issue.title, '$') ||
-      contains(github.event.issue.title, 'contract') ||
-      contains(github.event.issue.title, 'revenue')
-    steps:
-      - name: Extract Revenue Data
-        id: extract
-        run: |
-          # Extract potential value from issue title and body
-          TITLE="${{ github.event.issue.title }}"
-          BODY="${{ github.event.issue.body }}"
-          
-          # Look for dollar amounts (handles $1M, $500K, $2.5M format)
-          VALUE=$(echo "$TITLE $BODY" | grep -oE '\$[0-9]+\.?[0-9]*[KMB]?' | head -1 || echo "TBD")
-          
-          # Determine source repository
-          REPO="${{ github.repository }}"
-          SOURCE=$(echo $REPO | cut -d'/' -f2)
-          
-          # Detect contract type
-          CONTRACT_TYPE="Commercial"
-          if echo "$TITLE $BODY" | grep -iq "government\|dod\|army\|navy\|air force\|marines\|dhs"; then
-            CONTRACT_TYPE="Government"
-          fi
-          
-          echo "value=$VALUE" >> $GITHUB_OUTPUT
-          echo "source=$SOURCE" >> $GITHUB_OUTPUT
-          echo "contract_type=$CONTRACT_TYPE" >> $GITHUB_OUTPUT
-
-      - name: Add Revenue Analysis Comment
-        uses: actions/github-script@v7
-        with:
-          script: |
-            const value = "${{ steps.extract.outputs.value }}";
-            const source = "${{ steps.extract.outputs.source }}";
-            const contractType = "${{ steps.extract.outputs.contract_type }}";
-            
-            // Determine priority based on value
-            let priority = "Medium";
-            if (value.includes("M") || (value.includes("K") && parseInt(value.replace(/[^\d]/g, '')) >= 500)) {
-              priority = "High";
-            }
-            if (value.includes("B") || (value.includes("M") && parseInt(value.replace(/[^\d]/g, '')) >= 5)) {
-              priority = "Critical";
-            }
-            
-            const comment = `## 💰 Revenue Impact Analysis (AI-Generated)
-            
-            **Detected Value**: ${value}
-            **Contract Type**: ${contractType}
-            **Source Repository**: ${source}
-            **Recommended Priority**: ${priority}
-            
-            ### 🎯 Automatic Project Assignment:
-            ✅ **Revenue Pipeline** (#4) → 💡 Opportunities column
-            ${contractType === 'Government' ? '✅ **Defense Market Focus** (#6) → 🏛️ Contract Opportunities' : ''}
-            
-            ### 📋 Next Steps Checklist:
-            - [ ] **Validate Revenue Estimate** - Confirm actual contract value
-            - [ ] **Set PWin Probability** - Estimate likelihood of winning (10-100%)
-            - [ ] **Add Timeline** - Proposal deadline and decision dates
-            - [ ] **Assign Team** - Identify proposal team members
-            - [ ] **Competitive Analysis** - Research known competitors
-            - [ ] **Resource Planning** - Estimate required team and budget
-            
-            ### 🎮 Project Board Actions:
-            1. **Move to 📋 Qualifying** when details are confirmed
-            2. **Move to 🎯 This Quarter** when actively pursuing
-            3. **Update custom fields** with contract value and probability
-            4. **Move to 🔄 In Progress** when proposal is being written
-            
-            ### 🔗 Quick Links:
-            - [Revenue Pipeline Board](https://github.com/orgs/ProgrediSystems/projects/4)
-            - [Defense Market Board](https://github.com/orgs/ProgrediSystems/projects/6)
-            - [All Revenue Opportunities](https://github.com/orgs/ProgrediSystems/projects/4?filterQuery=label%3Arevenue-opportunity)
-            
-            ---
-            *🤖 This analysis was auto-generated by ProgrediSystems AI. Update the issue to recalculate.*`;
-            
-            github.rest.issues.createComment({
-              issue_number: context.issue.number,
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              body: comment
-            });
-
   ai-powered-labeling:
     runs-on: ubuntu-latest
     if: github.event.action == 'opened'
     steps:
-      - name: Auto-Apply Smart Labels
+      - name: AI Auto-Labeling and Analysis
         uses: actions/github-script@v7
         with:
           script: |
@@ -164,37 +68,52 @@ jobs:
             const body = (issue.body || '').toLowerCase();
             const repo = context.repo.repo;
             
-            const labelsToAdd = [];
+            console.log(`Analyzing issue: "${issue.title}" in ${repo}`);
             
-            // AI-powered label detection
+            const labelsToAdd = [];
+            let priority = '';
+            let contractValue = '';
+            let contractType = 'Commercial';
+            
+            // AI-powered content detection
             
             // Revenue opportunity detection
-            if (title.includes('$') || title.includes('contract') || title.includes('rfp') || 
+            const dollarMatch = issue.title.match(/\$([0-9,]+\.?[0-9]*[KMB]?)/);
+            if (dollarMatch || title.includes('contract') || title.includes('rfp') || 
                 title.includes('revenue') || title.includes('opportunity')) {
               labelsToAdd.push('revenue-opportunity');
+              contractValue = dollarMatch ? dollarMatch[1] : 'TBD';
             }
             
             // Government contract detection
             if (title.includes('government') || title.includes('dod') || title.includes('army') || 
-                title.includes('navy') || title.includes('air force') || title.includes('federal')) {
+                title.includes('navy') || title.includes('air force') || title.includes('federal') ||
+                title.includes('defense') || title.includes('military')) {
               labelsToAdd.push('government-rfp');
+              contractType = 'Government';
+            }
+            
+            // Contract opportunity detection
+            if (title.includes('contract') || title.includes('rfp') || title.includes('proposal')) {
+              labelsToAdd.push('contract-opportunity');
             }
             
             // Feature development detection
             if (title.includes('feature') || title.includes('add') || title.includes('new') ||
-                title.includes('implement') || title.includes('create')) {
+                title.includes('implement') || title.includes('create') || title.includes('build')) {
               labelsToAdd.push('feature');
             }
             
             // AI/ML detection
             if (title.includes('ai') || title.includes('ml') || title.includes('machine learning') ||
-                title.includes('artificial intelligence') || title.includes('automation')) {
+                title.includes('artificial intelligence') || title.includes('automation') ||
+                title.includes('constitutional ai')) {
               labelsToAdd.push('ai-enhancement');
             }
             
             // Bug detection
             if (title.includes('bug') || title.includes('fix') || title.includes('error') ||
-                title.includes('issue') || title.includes('problem')) {
+                title.includes('issue') || title.includes('problem') || title.includes('broken')) {
               labelsToAdd.push('bug');
             }
             
@@ -204,20 +123,36 @@ jobs:
               labelsToAdd.push('cmmc');
             }
             
-            // Priority detection based on value
-            if (title.match(/\$[1-9][0-9]*[Mm]/) || title.includes('critical') || title.includes('urgent')) {
-              labelsToAdd.push('priority-high');
-            } else if (title.match(/\$[1-9][0-9]*[Bb]/) || title.includes('major')) {
-              labelsToAdd.push('priority-critical');
+            // Defense-specific detection
+            if (repo === 'progredi-cai-m' || title.includes('constitutional') || 
+                title.includes('defense') || title.includes('military')) {
+              labelsToAdd.push('defense-contract');
             }
             
-            // Repository-specific labels
-            if (repo === 'core-contracts') {
-              labelsToAdd.push('contract-opportunity');
-            } else if (repo === 'client-engagement-system') {
-              labelsToAdd.push('client-opportunity');
-            } else if (repo === 'progredi-cai-m') {
-              labelsToAdd.push('defense-contract');
+            // Priority detection based on value and keywords
+            if (contractValue) {
+              const numValue = parseFloat(contractValue.replace(/[^0-9.]/g, ''));
+              const multiplier = contractValue.includes('M') ? 1000000 : 
+                               contractValue.includes('K') ? 1000 : 
+                               contractValue.includes('B') ? 1000000000 : 1;
+              const totalValue = numValue * multiplier;
+              
+              if (totalValue >= 1000000 || title.includes('critical') || title.includes('urgent')) {
+                priority = 'priority-critical';
+              } else if (totalValue >= 100000 || title.includes('high') || title.includes('important')) {
+                priority = 'priority-high';
+              } else if (totalValue >= 10000) {
+                priority = 'priority-medium';
+              }
+            } else if (title.includes('critical') || title.includes('urgent')) {
+              priority = 'priority-critical';
+            } else if (title.includes('high') || title.includes('important')) {
+              priority = 'priority-high';
+            }
+            
+            // Add priority label if determined
+            if (priority) {
+              labelsToAdd.push(priority);
             }
             
             // Apply detected labels
@@ -232,41 +167,322 @@ jobs:
                   labels: labelsToAdd
                 });
                 
-                // Add a comment explaining the auto-labeling
-                const labelComment = `## 🏷️ AI Auto-Labeling Applied
-                
-                The following labels were automatically applied based on issue analysis:
-                ${labelsToAdd.map(label => `- \`${label}\``).join('\n')}
-                
-                **Reasoning**: Content analysis detected keywords related to these categories.
-                
-                Feel free to add or remove labels as needed. The project boards will update automatically.
-                
-                ---
-                *🤖 Auto-generated by ProgrediSystems AI labeling system*`;
-                
-                await github.rest.issues.createComment({
-                  issue_number: context.issue.number,
-                  owner: context.repo.owner,
-                  repo: context.repo.repo,
-                  body: labelComment
-                });
+                console.log(`✅ Successfully applied ${labelsToAdd.length} labels`);
                 
               } catch (error) {
-                console.error('Error applying labels:', error);
+                console.error('❌ Error applying labels:', error.message);
               }
             }
+            
+            // Store analysis results for the next job
+            core.setOutput('labels_applied', labelsToAdd.join(','));
+            core.setOutput('contract_value', contractValue);
+            core.setOutput('contract_type', contractType);
+            core.setOutput('priority', priority);
+            core.setOutput('repo_name', repo);
 
-  weekly-project-health:
+  revenue-impact-analysis:
     runs-on: ubuntu-latest
-    if: github.event_name == 'schedule'
+    needs: ai-powered-labeling
+    if: |
+      contains(github.event.issue.title, '$') ||
+      contains(github.event.issue.title, 'contract') ||
+      contains(github.event.issue.title, 'revenue') ||
+      contains(github.event.issue.title, 'opportunity')
     steps:
-      - name: Generate Weekly Project Health Report
+      - name: Generate Revenue Impact Analysis
         uses: actions/github-script@v7
         with:
           script: |
-            // Weekly project health monitoring
-            console.log("Generating weekly project health report...");
+            const issue = context.payload.issue;
+            const title = issue.title;
+            const body = issue.body || '';
+            const repo = context.repo.repo;
             
-            // This would analyze project board health, velocity, etc.
-            // Implementation can be expanded based on needs
+            // Extract financial and contract details
+            const dollarMatch = title.match(/\$([0-9,]+\.?[0-9]*[KMB]?)/);
+            const contractValue = dollarMatch ? dollarMatch[1] : 'TBD';
+            
+            // Determine contract type
+            const isGovernment = /government|dod|army|navy|air force|federal|defense|military/i.test(title);
+            const contractType = isGovernment ? 'Government' : 'Commercial';
+            
+            // Calculate priority based on value
+            let priority = 'Medium';
+            let priorityEmoji = '🟡';
+            if (contractValue !== 'TBD') {
+              const numValue = parseFloat(contractValue.replace(/[^0-9.]/g, ''));
+              const multiplier = contractValue.includes('M') ? 1000000 : 
+                               contractValue.includes('K') ? 1000 : 
+                               contractValue.includes('B') ? 1000000000 : 1;
+              const totalValue = numValue * multiplier;
+              
+              if (totalValue >= 1000000) {
+                priority = 'Critical';
+                priorityEmoji = '🔴';
+              } else if (totalValue >= 100000) {
+                priority = 'High';
+                priorityEmoji = '🟠';
+              }
+            }
+            
+            // Estimate PWin based on contract characteristics
+            let pwin = 50;
+            let pwinReasoning = 'Standard competitive opportunity';
+            
+            if (title.toLowerCase().includes('sole source')) {
+              pwin = 85;
+              pwinReasoning = 'Sole source opportunity - high confidence';
+            } else if (title.toLowerCase().includes('incumbent')) {
+              pwin = 75;
+              pwinReasoning = 'Incumbent advantage';
+            } else if (title.toLowerCase().includes('small business') || title.toLowerCase().includes('sbir')) {
+              pwin = 70;
+              pwinReasoning = 'Small business set-aside advantage';
+            } else if (title.toLowerCase().includes('limited competition')) {
+              pwin = 65;
+              pwinReasoning = 'Limited competition - better odds';
+            } else if (isGovernment) {
+              pwin = 45;
+              pwinReasoning = 'Government competition - typically challenging';
+            }
+            
+            // Generate project board assignments
+            let projectAssignments = '✅ **Revenue Pipeline** (#4) → 💡 Opportunities column';
+            if (isGovernment) {
+              projectAssignments += '\n✅ **Defense Market Focus** (#6) → 🏛️ Contract Opportunities column';
+            }
+            if (title.toLowerCase().includes('feature') || title.toLowerCase().includes('ai') || repo === 'progredi-core') {
+              projectAssignments += '\n✅ **Core Development** (#5) → 📋 Backlog column';
+            }
+            
+            // Create comprehensive analysis comment
+            const analysisComment = `## 💰 AI Revenue Impact Analysis
+            
+**Contract Value**: $${contractValue}
+**Contract Type**: ${contractType}
+**Source Repository**: ${repo}
+**AI Priority Assessment**: ${priorityEmoji} ${priority}
+**Estimated PWin**: ${pwin}% - ${pwinReasoning}
+
+### 🎯 Automatic Project Assignments:
+${projectAssignments}
+
+### 📊 Financial Analysis:
+${contractValue !== 'TBD' ? `- **Expected Value**: $${contractValue} × ${pwin}% = $${calculateExpectedValue(contractValue, pwin)}` : '- **Expected Value**: Pending value confirmation'}
+- **Risk Level**: ${priority === 'Critical' ? 'High reward, strategic importance' : priority === 'High' ? 'Moderate risk, good opportunity' : 'Standard opportunity'}
+- **Resource Impact**: ${contractValue !== 'TBD' && contractValue.includes('M') ? 'Significant team allocation required' : 'Standard resource allocation'}
+
+### 📋 AI-Recommended Action Plan:
+
+#### Phase 1: Opportunity Qualification (Week 1)
+- [ ] **Validate Contract Details** - Confirm actual value, timeline, and requirements
+- [ ] **Competitive Intelligence** - Research known competitors and their capabilities
+- [ ] **Requirements Analysis** - Map RFP requirements to ProgrediSystems capabilities
+- [ ] **Go/No-Go Assessment** - Complete bid decision matrix
+- [ ] **Update PWin Estimate** - Refine probability based on detailed analysis
+
+#### Phase 2: Proposal Preparation (Week 2-3)
+- [ ] **Technical Approach** - Develop solution architecture and methodology
+- [ ] **Team Assembly** - Identify key personnel and past performance examples
+- [ ] **Partnership Strategy** - Determine teaming arrangements if needed
+- [ ] **Cost Development** - Create detailed pricing and cost model
+- [ ] **Risk Assessment** - Identify and mitigate proposal risks
+
+#### Phase 3: Submission & Follow-up (Week 4+)
+- [ ] **Quality Review** - Conduct thorough proposal review
+- [ ] **Compliance Check** - Ensure all RFP requirements addressed
+- [ ] **Submission Process** - Submit via required portal/method
+- [ ] **Post-Submission** - Prepare for Q&A period and potential orals
+
+### 🎮 Project Board Workflow:
+1. **Start**: 💡 Opportunities (current location)
+2. **After qualification**: Move to 📋 Qualifying when details confirmed
+3. **If pursuing**: Move to 🎯 This Quarter when go decision made
+4. **During development**: Move to 🔄 In Progress during proposal writing
+5. **Awaiting results**: Move to 👀 Client Review after submission
+6. **If won**: Move to 💰 Revenue Impact when contract awarded
+
+### 🔗 Quick Access Links:
+- [Revenue Pipeline Board](https://github.com/orgs/ProgrediSystems/projects/4)
+- [Defense Market Board](https://github.com/orgs/ProgrediSystems/projects/6)
+- [Core Development Board](https://github.com/orgs/ProgrediSystems/projects/5)
+- [All Revenue Opportunities](https://github.com/orgs/ProgrediSystems/projects/4?filterQuery=label%3Arevenue-opportunity)
+
+### 🤖 AI Insights:
+${generateAIInsights(title, contractType, contractValue, repo)}
+
+---
+*🧠 This analysis was generated by ProgrediSystems AI Project Management System. Update the issue title or description to trigger re-analysis.*`;
+
+            // Post the analysis comment
+            try {
+              await github.rest.issues.createComment({
+                issue_number: context.issue.number,
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                body: analysisComment
+              });
+              
+              console.log('✅ Revenue impact analysis comment posted successfully');
+              
+            } catch (error) {
+              console.error('❌ Error posting analysis comment:', error.message);
+            }
+            
+            // Helper function to calculate expected value
+            function calculateExpectedValue(value, probability) {
+              if (value === 'TBD') return 'TBD';
+              
+              const numValue = parseFloat(value.replace(/[^0-9.]/g, ''));
+              const multiplier = value.includes('M') ? 1000000 : 
+                               value.includes('K') ? 1000 : 
+                               value.includes('B') ? 1000000000 : 1;
+              const totalValue = numValue * multiplier;
+              const expectedValue = (totalValue * probability) / 100;
+              
+              if (expectedValue >= 1000000) {
+                return `${(expectedValue / 1000000).toFixed(1)}M`;
+              } else if (expectedValue >= 1000) {
+                return `${(expectedValue / 1000).toFixed(0)}K`;
+              } else {
+                return expectedValue.toFixed(0);
+              }
+            }
+            
+            // Helper function to generate AI insights
+            function generateAIInsights(title, contractType, value, repo) {
+              const insights = [];
+              
+              if (contractType === 'Government') {
+                insights.push('🏛️ **Government Advantage**: ProgrediSystems\' defense focus and CMMC compliance provide competitive positioning');
+              }
+              
+              if (title.toLowerCase().includes('ai') || title.toLowerCase().includes('constitutional')) {
+                insights.push('🤖 **AI Expertise Match**: This opportunity aligns with ProgrediSystems\' core AI and Constitutional AI capabilities');
+              }
+              
+              if (repo === 'progredi-cai-m') {
+                insights.push('⚔️ **Strategic Alignment**: Leverages Constitutional AI for Mission Systems - unique market differentiator');
+              }
+              
+              if (value !== 'TBD' && value.includes('M')) {
+                insights.push('💎 **High-Value Opportunity**: Major contract requiring senior leadership involvement and strategic planning');
+              }
+              
+              if (insights.length === 0) {
+                insights.push('📈 **Growth Opportunity**: Standard opportunity to expand ProgrediSystems market presence');
+              }
+              
+              return insights.join('\n');
+            }
+
+  smart-labeling-comment:
+    runs-on: ubuntu-latest
+    needs: ai-powered-labeling
+    if: github.event.action == 'opened'
+    steps:
+      - name: Add Smart Labeling Summary
+        uses: actions/github-script@v7
+        with:
+          script: |
+            // Wait a moment for labels to be applied
+            await new Promise(resolve => setTimeout(resolve, 2000));
+            
+            // Get the current labels on the issue
+            const { data: issue } = await github.rest.issues.get({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number
+            });
+            
+            const appliedLabels = issue.labels.map(label => label.name);
+            
+            if (appliedLabels.length > 0) {
+              const labelComment = `## 🏷️ AI Smart Labeling Applied
+
+The following labels were automatically detected and applied:
+${appliedLabels.map(label => `- \`${label}\` ${getLabelEmoji(label)}`).join('\n')}
+
+### 🧠 AI Detection Reasoning:
+${generateLabelReasoning(context.payload.issue.title, appliedLabels, context.repo.repo)}
+
+### 📊 Impact on Project Boards:
+${generateProjectImpact(appliedLabels)}
+
+*Feel free to add or remove labels as needed. Project boards will update automatically.*
+
+---
+*🤖 Powered by ProgrediSystems AI Labeling System*`;
+
+              await github.rest.issues.createComment({
+                issue_number: context.issue.number,
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                body: labelComment
+              });
+            }
+            
+            function getLabelEmoji(label) {
+              const emojiMap = {
+                'revenue-opportunity': '💰',
+                'contract-opportunity': '🏛️',
+                'feature': '🚀',
+                'ai-enhancement': '🤖',
+                'government-rfp': '🏛️',
+                'priority-critical': '🔴',
+                'priority-high': '🟠',
+                'priority-medium': '🟡',
+                'cmmc': '🛡️',
+                'defense-contract': '⚔️'
+              };
+              return emojiMap[label] || '🏷️';
+            }
+            
+            function generateLabelReasoning(title, labels, repo) {
+              const reasons = [];
+              
+              if (labels.includes('revenue-opportunity')) {
+                if (title.includes('$')) {
+                  reasons.push('💰 **Revenue Opportunity**: Dollar amount detected in title');
+                } else {
+                  reasons.push('💰 **Revenue Opportunity**: Keywords suggest financial opportunity');
+                }
+              }
+              
+              if (labels.includes('government-rfp')) {
+                reasons.push('🏛️ **Government RFP**: Government/military keywords detected');
+              }
+              
+              if (labels.includes('feature')) {
+                reasons.push('🚀 **Feature**: Development keywords detected (add, implement, create)');
+              }
+              
+              if (labels.includes('ai-enhancement')) {
+                reasons.push('🤖 **AI Enhancement**: AI/ML/automation keywords detected');
+              }
+              
+              if (labels.includes('priority-critical') || labels.includes('priority-high')) {
+                reasons.push('⚡ **High Priority**: High-value or urgent keywords detected');
+              }
+              
+              return reasons.join('\n');
+            }
+            
+            function generateProjectImpact(labels) {
+              const impacts = [];
+              
+              if (labels.includes('revenue-opportunity')) {
+                impacts.push('📈 **Revenue Pipeline** (#4): Added to opportunities tracking');
+              }
+              
+              if (labels.includes('feature')) {
+                impacts.push('💻 **Core Development** (#5): Added to development backlog');
+              }
+              
+              if (labels.includes('government-rfp') || labels.includes('defense-contract')) {
+                impacts.push('🏛️ **Defense Market Focus** (#6): Added to government contracts tracking');
+              }
+              
+              return impacts.join('\n');
+            }
