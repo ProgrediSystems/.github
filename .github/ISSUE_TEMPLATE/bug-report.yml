@@ -1,0 +1,65 @@
+name: 🐛 Bug Report
+description: Report a bug or issue
+title: "[BUG] "
+labels: ["bug", "needs-triage"]
+assignees: []
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ## 🐛 Bug Report
+        Help us fix issues quickly with detailed information.
+        
+  - type: textarea
+    id: description
+    attributes:
+      label: "Bug Description"
+      description: "What happened?"
+    validations:
+      required: true
+      
+  - type: textarea
+    id: steps
+    attributes:
+      label: "Steps to Reproduce"
+      description: "How can we reproduce this?"
+      placeholder: |
+        1. Go to...
+        2. Click on...
+        3. See error...
+    validations:
+      required: true
+      
+  - type: textarea
+    id: expected
+    attributes:
+      label: "Expected Behavior"
+      description: "What should have happened?"
+    validations:
+      required: true
+      
+  - type: dropdown
+    id: severity
+    attributes:
+      label: "Severity Level"
+      options:
+        - "🔴 Critical (System down, revenue impact)"
+        - "🟠 High (Major functionality broken)"
+        - "🟡 Medium (Minor functionality affected)"
+        - "🟢 Low (Cosmetic or edge case)"
+    validations:
+      required: true
+      
+  - type: input
+    id: environment
+    attributes:
+      label: "Environment"
+      description: "Where did this occur?"
+      placeholder: "Production, Staging, Development, etc."
+      
+  - type: textarea
+    id: revenue-impact
+    attributes:
+      label: "Revenue Impact"
+      description: "Does this affect revenue or customer satisfaction?"
+      placeholder: "Estimate financial impact, customer complaints, etc."
