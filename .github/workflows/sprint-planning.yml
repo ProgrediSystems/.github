@@ -1,0 +1,11 @@
+name: AI-Powered Sprint Planning
+on:
+  schedule:
+    - cron: '0 9 * * MON'  # Every Monday at 9 AM
+jobs:
+  plan-sprint:
+    steps:
+      - name: Analyze issue priorities
+      - name: Suggest sprint composition
+      - name: Check resource allocation
+      - name: Identify potential blockers
