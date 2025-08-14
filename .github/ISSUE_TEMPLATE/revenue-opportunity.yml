@@ -1,0 +1,110 @@
+name: 💰 Revenue Opportunity
+description: Track potential revenue-generating opportunities
+title: "[REVENUE] "
+labels: ["revenue-opportunity", "p-and-l-impact"]
+assignees: []
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ## 💰 Revenue Opportunity Tracking
+        Use this template for opportunities that could generate revenue or reduce costs.
+        
+  - type: input
+    id: opportunity-value
+    attributes:
+      label: "Potential Value"
+      description: "Estimated revenue impact"
+      placeholder: "e.g., $250K ARR, 15% cost reduction"
+    validations:
+      required: true
+      
+  - type: dropdown
+    id: probability
+    attributes:
+      label: "Probability of Success"
+      description: "Likelihood this opportunity converts to revenue"
+      options:
+        - "90-100% (Almost Certain)"
+        - "70-89% (Likely)"
+        - "50-69% (Possible)"
+        - "30-49% (Unlikely)"
+        - "10-29% (Very Unlikely)"
+        - "<10% (Experimental)"
+    validations:
+      required: true
+      
+  - type: dropdown
+    id: timeline
+    attributes:
+      label: "Timeline to Revenue"
+      description: "When will this generate revenue?"
+      options:
+        - "Immediate (0-30 days)"
+        - "Short-term (1-3 months)"
+        - "Medium-term (3-6 months)"
+        - "Long-term (6-12 months)"
+        - "Strategic (12+ months)"
+    validations:
+      required: true
+      
+  - type: textarea
+    id: description
+    attributes:
+      label: "Opportunity Description"
+      description: "Detailed description of the opportunity"
+      placeholder: "What is this opportunity? Why is it valuable? What's the business case?"
+    validations:
+      required: true
+      
+  - type: textarea
+    id: success-criteria
+    attributes:
+      label: "Success Criteria"
+      description: "How will we measure success?"
+      placeholder: |
+        - [ ] Technical deliverable completed
+        - [ ] Client acceptance achieved
+        - [ ] Revenue realized
+        - [ ] Reference case created
+    validations:
+      required: true
+      
+  - type: textarea
+    id: resource-requirements
+    attributes:
+      label: "Resource Requirements"
+      description: "What resources are needed?"
+      placeholder: |
+        - Development time: X hours
+        - Team members: Y people
+        - Budget: $Z
+        - Timeline: W weeks
+        
+  - type: textarea
+    id: risks
+    attributes:
+      label: "Risk Assessment"
+      description: "What could prevent success?"
+      placeholder: |
+        **Technical Risks:**
+        - 
+        
+        **Market Risks:**
+        - 
+        
+        **Resource Risks:**
+        - 
+        
+  - type: dropdown
+    id: priority
+    attributes:
+      label: "Priority Level"
+      description: "Business priority"
+      options:
+        - "🔴 Critical (Revenue Blocker)"
+        - "🟠 High (Major Impact)"
+        - "🟡 Medium (Moderate Impact)"
+        - "🟢 Low (Nice to Have)"
+    validations:
+      required: true
