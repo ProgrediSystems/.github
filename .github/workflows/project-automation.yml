@@ -1,4 +1,4 @@
-name: ProgrediSystems Advanced AI Automation
+name: ProgrediSystems Intelligent Automation
 on:
   issues:
     types: [opened, labeled, edited]
@@ -8,100 +8,184 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Add to Revenue Pipeline
-        if: contains(github.event.issue.title, '$') || contains(github.event.issue.title, 'contract')
+        if: |
+          contains(github.event.issue.title, '$') || 
+          contains(github.event.issue.title, 'contract') || 
+          contains(github.event.issue.title, 'RFP') ||
+          contains(github.event.issue.title, 'proposal') ||
+          contains(github.event.issue.title, 'revenue')
         uses: actions/add-to-project@v0.5.0
         with:
           project-url: https://github.com/orgs/ProgrediSystems/projects/4
           github-token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Add to Defense Market
-        if: contains(github.event.issue.title, 'Army') || contains(github.event.issue.title, 'government') || contains(github.event.issue.title, 'DoD')
+        if: |
+          contains(github.event.issue.title, 'Army') || 
+          contains(github.event.issue.title, 'Navy') ||
+          contains(github.event.issue.title, 'government') || 
+          contains(github.event.issue.title, 'DoD') ||
+          contains(github.event.issue.title, 'federal') ||
+          contains(github.event.issue.title, 'DARPA') ||
+          contains(github.event.issue.title, 'SBIR')
         uses: actions/add-to-project@v0.5.0
         with:
           project-url: https://github.com/orgs/ProgrediSystems/projects/6
           github-token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Add to Core Development
-        if: contains(github.event.issue.title, 'feature') || contains(github.event.issue.title, 'add') || contains(github.event.issue.title, 'AI')
+        if: |
+          contains(github.event.issue.title, 'feature') || 
+          contains(github.event.issue.title, 'add') ||
+          contains(github.event.issue.title, 'implement') ||
+          contains(github.event.issue.title, 'build') ||
+          contains(github.event.issue.title, 'create') ||
+          contains(github.event.issue.title, 'develop') ||
+          github.repository == 'ProgrediSystems/progredi-core' ||
+          github.repository == 'ProgrediSystems/ai-capabilities'
         uses: actions/add-to-project@v0.5.0
         with:
           project-url: https://github.com/orgs/ProgrediSystems/projects/5
           github-token: ${{ secrets.GITHUB_TOKEN }}
 
-  smart-labeling:
+  intelligent-categorization:
     runs-on: ubuntu-latest
     if: github.event.action == 'opened'
     steps:
-      - name: Advanced Smart Labeling
+      - name: Smart Content Analysis
         uses: actions/github-script@v7
         with:
           script: |
             const title = context.payload.issue.title.toLowerCase();
             const body = (context.payload.issue.body || '').toLowerCase();
+            const repo = context.repo.repo;
             const labels = [];
             
-            // Revenue opportunity detection
-            if (title.includes('$') || title.includes('contract') || title.includes('revenue')) {
-              labels.push('revenue-opportunity');
-            }
+            console.log('Analyzing:', context.payload.issue.title);
             
-            // Government contract detection with specificity
-            if (title.includes('army') || title.includes('government') || title.includes('dod') || 
-                title.includes('navy') || title.includes('air force') || title.includes('federal')) {
-              labels.push('government-rfp');
-            }
+            // Enhanced content analysis to distinguish types
+            const fullText = title + ' ' + body;
             
-            // Contract type detection
-            if (title.includes('prime') || body.includes('prime contractor')) {
-              labels.push('prime-contract');
-            } else if (title.includes('sub') || body.includes('subcontract')) {
-              labels.push('subcontract');
-            }
+            // CONTRACT OPPORTUNITY DETECTION - Be more specific
+            const contractIndicators = [
+              /\b(rfp|request for proposal)\b/,
+              /\b(solicitation|sol-?\d+)\b/,
+              /\b(contract.*opportunity)\b/,
+              /\b(proposal.*due|proposal.*deadline)\b/,
+              /\b(procurement|acquisition)\b/,
+              /\b(bid|bidding)\b/,
+              /\b(award|contract.*award)\b/,
+              /\b(idiq|gsa|oasis)\b/,
+              /\b(prime.*contract|subcontract)\b/
+            ];
             
-            // IDIQ/GSA detection
-            if (title.includes('idiq') || title.includes('gsa') || body.includes('indefinite delivery')) {
-              labels.push('idiq-contract');
-            }
+            const hasContractIndicators = contractIndicators.some(pattern => pattern.test(fullText));
+            const hasDollarAmount = /\$[\d,]+[kmb]?/i.test(title);
             
-            // SBIR/STTR detection
-            if (title.includes('sbir') || title.includes('sttr') || body.includes('small business innovation')) {
-              labels.push('sbir-sttr');
-            }
+            // FEATURE DEVELOPMENT DETECTION
+            const featureIndicators = [
+              /\b(add|create|build|implement|develop)\b.*\b(feature|functionality|component|module)\b/,
+              /\b(new.*feature|feature.*request)\b/,
+              /\b(enhancement|improvement|upgrade)\b/,
+              /\b(dashboard|interface|ui|ux)\b/,
+              /\b(api|endpoint|integration)\b/,
+              /\b(bug.*fix|fix.*bug|defect)\b/,
+              /\b(optimization|performance)\b/,
+              /\b(testing|qa|quality)\b/
+            ];
             
-            // Feature development
-            if (title.includes('feature') || title.includes('add') || title.includes('implement')) {
-              labels.push('feature');
-            }
+            const hasFeatureIndicators = featureIndicators.some(pattern => pattern.test(fullText));
             
-            // AI/ML detection
-            if (title.includes('ai') || title.includes('constitutional') || title.includes('machine learning')) {
-              labels.push('ai-enhancement');
-            }
+            // REVENUE OPPORTUNITY DETECTION (broader than contracts)
+            const revenueIndicators = [
+              /\b(revenue.*potential|revenue.*opportunity)\b/,
+              /\b(client.*engagement|customer.*project)\b/,
+              /\b(commercial.*opportunity)\b/,
+              /\b(sales.*opportunity|business.*development)\b/,
+              /\b(partnership|strategic.*alliance)\b/,
+              /\b(license|licensing.*agreement)\b/
+            ];
             
-            // Priority detection based on value
-            const valueMatch = title.match(/\$([0-9,]+\.?[0-9]*[kmb]?)/i);
-            if (valueMatch) {
-              const value = valueMatch[1].toLowerCase();
-              const numValue = parseFloat(value.replace(/[^0-9.]/g, ''));
+            const hasRevenueIndicators = revenueIndicators.some(pattern => pattern.test(fullText));
+            
+            // SMART LABELING LOGIC
+            
+            // 1. CONTRACT OPPORTUNITIES (most specific)
+            if (hasContractIndicators || (hasDollarAmount && /\b(government|dod|army|navy|federal)\b/i.test(fullText))) {
+              labels.push('contract-opportunity');
+              console.log('Detected: Contract opportunity');
               
-              if (value.includes('b') || (value.includes('m') && numValue >= 10)) {
-                labels.push('priority-critical');
-              } else if (value.includes('m') || (value.includes('k') && numValue >= 500)) {
-                labels.push('priority-high');
-              } else if (numValue >= 100) {
-                labels.push('priority-medium');
+              // Determine contract type
+              if (/\b(government|dod|army|navy|air force|federal|darpa)\b/i.test(fullText)) {
+                labels.push('government-rfp');
+                console.log('Detected: Government RFP');
+              }
+              
+              if (/\b(sbir|sttr|small business)\b/i.test(fullText)) {
+                labels.push('sbir-sttr');
+                console.log('Detected: SBIR/STTR');
               }
             }
             
-            // Competition level detection
-            if (title.includes('sole source') || body.includes('sole source')) {
-              labels.push('sole-source');
-            } else if (title.includes('limited competition') || body.includes('limited competition')) {
-              labels.push('limited-competition');
-            } else if (title.includes('full competition') || body.includes('full competition')) {
-              labels.push('full-competition');
+            // 2. FEATURE DEVELOPMENT (technical work)
+            else if (hasFeatureIndicators || 
+                     repo === 'progredi-core' || 
+                     repo === 'ai-capabilities' ||
+                     repo === 'client-engagement-system') {
+              labels.push('feature');
+              console.log('Detected: Feature development');
+              
+              if (/\b(ai|artificial intelligence|machine learning|constitutional)\b/i.test(fullText)) {
+                labels.push('ai-enhancement');
+                console.log('Detected: AI enhancement');
+              }
             }
             
+            // 3. REVENUE OPPORTUNITIES (commercial/business development)
+            else if (hasRevenueIndicators || 
+                     (hasDollarAmount && !/\b(cost|budget|expense)\b/i.test(fullText))) {
+              labels.push('revenue-opportunity');
+              console.log('Detected: Revenue opportunity');
+            }
+            
+            // 4. GENERAL BUSINESS VALUE (if has dollar amount but unclear type)
+            else if (hasDollarAmount) {
+              labels.push('business-value');
+              console.log('Detected: General business value');
+            }
+            
+            // PRIORITY DETECTION (applies to all types)
+            if (hasDollarAmount) {
+              const valueMatch = title.match(/\$([0-9,]+\.?[0-9]*[kmb]?)/i);
+              if (valueMatch) {
+                const value = valueMatch[1].toLowerCase();
+                const numValue = parseFloat(value.replace(/[^0-9.]/g, ''));
+                
+                if (value.includes('b') || (value.includes('m') && numValue >= 5)) {
+                  labels.push('priority-critical');
+                  console.log('Detected: Critical priority');
+                } else if (value.includes('m') || (value.includes('k') && numValue >= 500)) {
+                  labels.push('priority-high');
+                  console.log('Detected: High priority');
+                } else if (numValue >= 100) {
+                  labels.push('priority-medium');
+                  console.log('Detected: Medium priority');
+                }
+              }
+            }
+            
+            // TECHNICAL CATEGORIES
+            if (/\b(bug|error|defect|broken)\b/i.test(fullText)) {
+              labels.push('bug');
+              console.log('Detected: Bug fix');
+            }
+            
+            if (/\b(cmmc|compliance|security.*audit|certification)\b/i.test(fullText)) {
+              labels.push('compliance');
+              console.log('Detected: Compliance work');
+            }
+            
+            // Apply labels and create analysis
             if (labels.length > 0) {
               await github.rest.issues.addLabels({
                 owner: context.repo.owner,
@@ -110,27 +194,86 @@ jobs:
                 labels: labels
               });
               
+              // Determine primary category for comment
+              let primaryCategory = 'General Business Item';
+              let categoryIcon = '📋';
+              
+              if (labels.includes('contract-opportunity')) {
+                primaryCategory = 'Contract Opportunity';
+                categoryIcon = '🏛️';
+              } else if (labels.includes('feature')) {
+                primaryCategory = 'Feature Development';
+                categoryIcon = '🚀';
+              } else if (labels.includes('revenue-opportunity')) {
+                primaryCategory = 'Revenue Opportunity';
+                categoryIcon = '💰';
+              } else if (labels.includes('bug')) {
+                primaryCategory = 'Bug Fix';
+                categoryIcon = '🐛';
+              }
+              
+              const categorizationComment = '## 🏷️ Intelligent Categorization\n\n' +
+                '**Primary Category**: ' + categoryIcon + ' ' + primaryCategory + '\n' +
+                '**Auto-applied labels**: ' + labels.join(', ') + '\n' +
+                '**Repository**: ' + repo + '\n\n' +
+                '**Analysis Confidence**: ' + (labels.length >= 3 ? 'High' : labels.length >= 2 ? 'Medium' : 'Low') + '\n\n' +
+                '🤖 *Intelligent categorization system*';
+              
               await github.rest.issues.createComment({
                 issue_number: context.issue.number,
                 owner: context.repo.owner,
                 repo: context.repo.repo,
-                body: '## 🏷️ Advanced AI Labeling\n\n**Auto-applied labels**: ' + labels.join(', ') + '\n\n**Detection confidence**: High\n\n🤖 Enhanced labeling system'
+                body: categorizationComment
               });
             }
 
-  advanced-financial-analysis:
+  financial-analysis:
     runs-on: ubuntu-latest
-    if: contains(github.event.issue.title, '$') || contains(github.event.issue.title, 'contract')
+    if: |
+      contains(github.event.issue.title, '$') || 
+      contains(github.event.issue.title, 'contract') ||
+      contains(github.event.issue.title, 'revenue')
     steps:
-      - name: Comprehensive Financial Analysis
+      - name: Contextual Financial Analysis
         uses: actions/github-script@v7
         with:
           script: |
             const title = context.payload.issue.title;
             const body = context.payload.issue.body || '';
             const repo = context.repo.repo;
+            const fullText = title.toLowerCase() + ' ' + body.toLowerCase();
             
-            // Enhanced value extraction
+            console.log('Financial analysis for:', title);
+            
+            // Determine the TYPE of financial opportunity
+            let opportunityType = 'Unknown';
+            let analysisApproach = 'general';
+            
+            // CONTRACT OPPORTUNITY
+            const contractIndicators = [
+              /\b(rfp|request for proposal|solicitation|procurement|bid)\b/,
+              /\b(contract.*opportunity|prime.*contract|subcontract)\b/,
+              /\b(government|dod|army|navy|federal)\b/
+            ];
+            
+            if (contractIndicators.some(pattern => pattern.test(fullText))) {
+              opportunityType = 'Contract Opportunity';
+              analysisApproach = 'contract';
+            }
+            
+            // FEATURE/PRODUCT DEVELOPMENT
+            else if (/\b(feature|add|create|build|implement|develop|dashboard|platform)\b/.test(fullText)) {
+              opportunityType = 'Product Development';
+              analysisApproach = 'product';
+            }
+            
+            // REVENUE/BUSINESS DEVELOPMENT
+            else if (/\b(revenue|client|customer|commercial|sales|business)\b/.test(fullText)) {
+              opportunityType = 'Business Development';
+              analysisApproach = 'business';
+            }
+            
+            // Extract financial data
             const valueMatch = title.match(/\$([0-9,]+\.?[0-9]*[KMB]?)/i) || body.match(/\$([0-9,]+\.?[0-9]*[KMB]?)/i);
             let contractValue = 'TBD';
             let numericValue = 0;
@@ -149,86 +292,75 @@ jobs:
               }
             }
             
-            // Contract type analysis
-            const isGovernment = /army|navy|government|dod|air force|federal|defense|military|usaf|usmc/i.test(title + ' ' + body);
-            const contractType = isGovernment ? 'Government' : 'Commercial';
+            // CONTEXTUAL ANALYSIS based on opportunity type
+            let pwin, pwinReason, expectedValue, riskLevel, recommendations;
             
-            // Advanced PWin calculation
-            let pwin = 50;
-            let pwinFactors = [];
-            let pwinReasoning = 'Base competitive assessment';
-            
-            // Competition level impact
-            if (/sole source/i.test(title + ' ' + body)) {
-              pwin = 85;
-              pwinFactors.push('Sole source (+35%)');
-              pwinReasoning = 'Sole source opportunity - very high confidence';
-            } else if (/limited competition/i.test(title + ' ' + body)) {
+            if (analysisApproach === 'contract') {
+              // CONTRACT-SPECIFIC ANALYSIS
+              const isGovernment = /\b(government|dod|army|navy|federal|darpa)\b/i.test(fullText);
+              
+              pwin = 50; // Base
+              const pwinFactors = [];
+              
+              if (/\bsole source\b/i.test(fullText)) {
+                pwin = 85;
+                pwinFactors.push('Sole source (+35%)');
+                pwinReason = 'Sole source - very high confidence';
+              } else if (/\blimited competition\b/i.test(fullText)) {
+                pwin = 65;
+                pwinFactors.push('Limited competition (+15%)');
+                pwinReason = 'Limited competition - good positioning';
+              } else if (isGovernment) {
+                pwin = 45;
+                pwinFactors.push('Government competition (-5%)');
+                pwinReason = 'Government competition - standard difficulty';
+              } else {
+                pwin = 60;
+                pwinFactors.push('Commercial opportunity (+10%)');
+                pwinReason = 'Commercial contract - favorable odds';
+              }
+              
+              if (/\b(ai|constitutional|machine learning)\b/i.test(fullText)) {
+                pwin += 10;
+                pwinFactors.push('AI expertise match (+10%)');
+              }
+              
+              riskLevel = numericValue >= 5000000 ? 'High' : numericValue >= 1000000 ? 'Medium-High' : 'Medium';
+              recommendations = [
+                '📋 Conduct thorough RFP analysis',
+                '🤝 Assess teaming opportunities',
+                '💼 Prepare go/no-go decision matrix',
+                '📊 Develop competitive pricing strategy'
+              ];
+              
+            } else if (analysisApproach === 'product') {
+              // PRODUCT DEVELOPMENT ANALYSIS
+              pwin = 75; // Higher confidence for internal development
+              pwinReason = 'Internal product development - high control';
+              
+              riskLevel = 'Low-Medium';
+              recommendations = [
+                '🎯 Define clear success metrics',
+                '👥 Assign dedicated development team',
+                '📈 Plan phased rollout approach',
+                '💡 Consider AI enhancement opportunities'
+              ];
+              
+            } else {
+              // BUSINESS DEVELOPMENT ANALYSIS
               pwin = 65;
-              pwinFactors.push('Limited competition (+15%)');
-              pwinReasoning = 'Limited competition - good positioning';
-            } else if (/incumbent/i.test(title + ' ' + body)) {
-              pwin = 75;
-              pwinFactors.push('Incumbent advantage (+25%)');
-              pwinReasoning = 'Incumbent position - strong advantage';
+              pwinReason = 'Business development opportunity';
+              
+              riskLevel = 'Medium';
+              recommendations = [
+                '🤝 Engage with client stakeholders',
+                '📊 Develop value proposition',
+                '💰 Create pricing strategy',
+                '📋 Plan delivery approach'
+              ];
             }
             
-            // Contract type adjustments
-            if (isGovernment && pwin === 50) {
-              pwin = 45;
-              pwinFactors.push('Government competition (-5%)');
-              pwinReasoning = 'Government competition - standard difficulty';
-            } else if (!isGovernment && pwin === 50) {
-              pwin = 60;
-              pwinFactors.push('Commercial opportunity (+10%)');
-              pwinReasoning = 'Commercial opportunity - favorable odds';
-            }
-            
-            // SBIR/Small business advantages
-            if (/sbir|sttr|small business/i.test(title + ' ' + body)) {
-              pwin += 15;
-              pwinFactors.push('Small business advantage (+15%)');
-            }
-            
-            // ProgrediSystems strengths
-            if (/ai|artificial intelligence|constitutional|machine learning/i.test(title + ' ' + body)) {
-              pwin += 10;
-              pwinFactors.push('AI expertise match (+10%)');
-            }
-            
-            if (/defense|military|dod/i.test(title + ' ' + body)) {
-              pwin += 8;
-              pwinFactors.push('Defense market focus (+8%)');
-            }
-            
-            // Cap PWin at realistic maximum
-            pwin = Math.min(pwin, 95);
-            
-            // Risk assessment
-            let riskLevel = 'Medium';
-            let riskFactors = [];
-            
-            if (numericValue >= 10000000) { // $10M+
-              riskLevel = 'High';
-              riskFactors.push('Large contract size');
-            } else if (numericValue >= 1000000) { // $1M+
-              riskLevel = 'Medium-High';
-              riskFactors.push('Significant contract value');
-            }
-            
-            if (isGovernment) {
-              riskFactors.push('Government contract complexity');
-            }
-            
-            if (pwin < 40) {
-              riskLevel = 'High';
-              riskFactors.push('Low probability of win');
-            }
-            
-            // Expected value calculation
-            let expectedValue = 'TBD';
-            let roi = 'TBD';
-            
+            // Calculate expected value
             if (numericValue > 0) {
               const expected = (numericValue * pwin) / 100;
               
@@ -239,161 +371,39 @@ jobs:
               } else {
                 expectedValue = '$' + expected.toFixed(0);
               }
-              
-              // Estimate development cost (10-15% of contract value)
-              const estimatedCost = numericValue * 0.125;
-              const netProfit = expected - estimatedCost;
-              const roiPercent = ((netProfit / estimatedCost) * 100).toFixed(0);
-              roi = roiPercent + '%';
+            } else {
+              expectedValue = 'TBD';
             }
             
-            // Market analysis
-            let marketInsights = [];
-            
-            if (isGovernment) {
-              marketInsights.push('🏛️ Government contracts typically have 12-18 month sales cycles');
-              marketInsights.push('📋 Requires CMMC compliance and security clearances');
-            }
-            
-            if (/ai|constitutional/i.test(title + ' ' + body)) {
-              marketInsights.push('🤖 Leverages ProgrediSystems core AI competencies');
-              marketInsights.push('⚔️ Constitutional AI provides unique market differentiation');
-            }
-            
-            if (numericValue >= 5000000) {
-              marketInsights.push('💎 Large contract requiring C-level involvement');
-              marketInsights.push('🤝 May require teaming partnerships');
-            }
-            
-            // Generate comprehensive analysis
-            const analysisComment = '## 💰 Advanced Financial Analysis\n\n' +
-              '### 📊 Contract Overview\n' +
+            // Generate contextual analysis
+            const analysisComment = '## 💰 Contextual Financial Analysis\n\n' +
+              '### 📊 Opportunity Assessment\n' +
+              '**Type**: ' + opportunityType + '\n' +
               '**Value**: $' + contractValue + '\n' +
-              '**Type**: ' + contractType + '\n' +
               '**Repository**: ' + repo + '\n' +
               '**Risk Level**: ' + riskLevel + '\n\n' +
               
-              '### 🎯 PWin Analysis\n' +
-              '**Probability of Win**: ' + pwin + '%\n' +
-              '**Reasoning**: ' + pwinReasoning + '\n' +
-              '**Contributing Factors**:\n' +
-              (pwinFactors.length > 0 ? pwinFactors.map(f => '- ' + f).join('\n') : '- Standard competitive factors') + '\n\n' +
+              '### 🎯 Success Probability\n' +
+              '**Probability**: ' + pwin + '%\n' +
+              '**Reasoning**: ' + pwinReason + '\n' +
+              '**Expected Value**: ' + expectedValue + '\n\n' +
               
-              '### 💵 Financial Projections\n' +
-              '**Expected Value**: ' + expectedValue + '\n' +
-              '**Estimated ROI**: ' + roi + '\n' +
-              '**Risk Factors**: ' + (riskFactors.length > 0 ? riskFactors.join(', ') : 'Standard business risks') + '\n\n' +
+              '### 📋 Recommended Actions\n' +
+              recommendations.map(r => '- ' + r).join('\n') + '\n\n' +
               
-              '### 📈 Market Intelligence\n' +
-              (marketInsights.length > 0 ? marketInsights.join('\n') + '\n\n' : '') +
+              '### 🎮 Project Workflow\n' +
+              (opportunityType === 'Contract Opportunity' ? 
+                '🏛️ **Contract Path**: Opportunity → Qualification → Proposal → Award\n' :
+                opportunityType === 'Product Development' ?
+                '🚀 **Development Path**: Backlog → Sprint → Development → Testing → Release\n' :
+                '💼 **Business Path**: Lead → Qualification → Proposal → Negotiation → Close\n') +
               
-              '### 🎮 Project Board Assignments\n' +
-              '✅ Revenue Pipeline (#4) - ' + expectedValue + ' expected\n' +
-              (isGovernment ? '✅ Defense Market Focus (#6) - Government contract\n' : '') +
-              (title.toLowerCase().includes('feature') || title.toLowerCase().includes('ai') ? '✅ Core Development (#5) - Technical development\n' : '') +
-              '\n### 📋 Strategic Recommendations\n' +
-              
-              (pwin >= 70 ? '🟢 **PURSUE**: High probability opportunity\n' :
-               pwin >= 50 ? '🟡 **EVALUATE**: Competitive opportunity requiring analysis\n' :
-               '🔴 **CAUTION**: Low probability - consider strategic value only\n') +
-              
-              (numericValue >= 5000000 ? '💼 **Executive Decision Required**: Large contract needs C-level approval\n' : '') +
-              (isGovernment ? '🛡️ **Compliance Check**: Ensure CMMC and security requirements met\n' : '') +
-              (riskLevel === 'High' ? '⚠️ **Risk Mitigation**: Develop comprehensive risk management plan\n' : '') +
-              
-              '\n### 🔗 Quick Actions\n' +
-              '- [Revenue Pipeline](https://github.com/orgs/ProgrediSystems/projects/4)\n' +
-              '- [Defense Market](https://github.com/orgs/ProgrediSystems/projects/6)\n' +
-              '- [Financial Controls](https://github.com/ProgrediSystems/financial-controls)\n\n' +
-              
-              '---\n' +
-              '🧠 **Advanced AI Financial Analysis** | Confidence: High | Last Updated: ' + new Date().toLocaleDateString();
+              '\n---\n' +
+              '🧠 **Contextual AI Analysis** | Type: ' + opportunityType + ' | ' + new Date().toLocaleDateString();
             
             await github.rest.issues.createComment({
               issue_number: context.issue.number,
               owner: context.repo.owner,
               repo: context.repo.repo,
               body: analysisComment
-            });
-
-  market-competitive-analysis:
-    runs-on: ubuntu-latest
-    if: contains(github.event.issue.title, '$') && github.event.action == 'opened'
-    steps:
-      - name: Competitive Intelligence
-        uses: actions/github-script@v7
-        with:
-          script: |
-            const title = context.payload.issue.title;
-            const body = context.payload.issue.body || '';
-            
-            const valueMatch = title.match(/\$([0-9,]+\.?[0-9]*[KMB]?)/i);
-            if (!valueMatch) return;
-            
-            const contractValue = valueMatch[1];
-            const isGovernment = /army|navy|government|dod|air force|federal|defense|military/i.test(title + ' ' + body);
-            const isAI = /ai|artificial intelligence|constitutional|machine learning/i.test(title + ' ' + body);
-            
-            let competitiveFactors = [];
-            let marketPosition = 'Competitive';
-            
-            // Analyze competitive positioning
-            if (isAI && isGovernment) {
-              competitiveFactors.push('🎯 **Constitutional AI Advantage**: Unique positioning in defense AI market');
-              competitiveFactors.push('🏛️ **Government AI Focus**: Specialized experience in federal AI requirements');
-              marketPosition = 'Strong';
-            }
-            
-            if (isGovernment) {
-              competitiveFactors.push('🛡️ **Defense Expertise**: Established government contracting capabilities');
-              competitiveFactors.push('📋 **CMMC Compliance**: Security compliance provides competitive edge');
-            }
-            
-            if (/small business|sbir|sttr/i.test(title + ' ' + body)) {
-              competitiveFactors.push('🏢 **Small Business Status**: Advantage in set-aside opportunities');
-              marketPosition = 'Favorable';
-            }
-            
-            // Known competitors analysis
-            let competitorInsights = [];
-            
-            if (isAI && isGovernment) {
-              competitorInsights.push('🔍 **Key Competitors**: Booz Allen, CACI, SAIC, Palantir in government AI space');
-              competitorInsights.push('💡 **Differentiation**: Constitutional AI approach provides unique value proposition');
-            } else if (isGovernment) {
-              competitorInsights.push('🔍 **Typical Competitors**: Large systems integrators and established defense contractors');
-              competitorInsights.push('💡 **SMB Advantage**: Agility and specialized focus vs. large contractor overhead');
-            }
-            
-            const competitiveComment = '## 🏆 Competitive Intelligence Analysis\n\n' +
-              '### 🎯 Market Position\n' +
-              '**Overall Position**: ' + marketPosition + '\n' +
-              '**Contract Focus**: ' + (isGovernment ? 'Government/Defense' : 'Commercial') + '\n' +
-              '**Technology Area**: ' + (isAI ? 'AI/ML Specialized' : 'General Technology') + '\n\n' +
-              
-              '### 💪 Competitive Advantages\n' +
-              (competitiveFactors.length > 0 ? competitiveFactors.join('\n') + '\n\n' : 'Standard competitive positioning\n\n') +
-              
-              '### 🔍 Market Intelligence\n' +
-              (competitorInsights.length > 0 ? competitorInsights.join('\n') + '\n\n' : '') +
-              
-              '### 📊 Win Strategy Recommendations\n' +
-              (marketPosition === 'Strong' ? '🚀 **Aggressive Pursuit**: Strong competitive position warrants full investment\n' :
-               marketPosition === 'Favorable' ? '📈 **Strategic Pursuit**: Good positioning with targeted approach\n' :
-               '⚖️ **Selective Pursuit**: Evaluate resource allocation carefully\n') +
-              
-              '🎯 **Key Differentiators to Emphasize**:\n' +
-              (isAI ? '- Constitutional AI expertise and ethical AI frameworks\n' : '') +
-              (isGovernment ? '- Defense-focused experience and security compliance\n' : '') +
-              '- Agile delivery and client-focused approach\n' +
-              '- Technical innovation and cutting-edge solutions\n\n' +
-              
-              '---\n' +
-              '🔍 **Competitive Intelligence** | Market Analysis | ' + new Date().toLocaleDateString();
-            
-            await github.rest.issues.createComment({
-              issue_number: context.issue.number,
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              body: competitiveComment
             });
