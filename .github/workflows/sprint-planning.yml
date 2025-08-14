@@ -1,11 +1,75 @@
-name: AI-Powered Sprint Planning
+name: AI Sprint Planning
 on:
   schedule:
     - cron: '0 9 * * MON'  # Every Monday at 9 AM
+  workflow_dispatch:
+
 jobs:
-  plan-sprint:
+  ai-sprint-planning:
+    runs-on: ubuntu-latest
     steps:
-      - name: Analyze issue priorities
-      - name: Suggest sprint composition
-      - name: Check resource allocation
-      - name: Identify potential blockers
+      - name: Gather Sprint Data
+        id: gather
+        uses: actions/github-script@v6
+        with:
+          script: |
+            // Gather issues for sprint planning
+            const { data: issues } = await github.rest.issues.listForRepo({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              state: 'open',
+              labels: 'sprint-ready,revenue-opportunity',
+              sort: 'updated',
+              per_page: 50
+            });
+            
+            // Analyze issue priorities and dependencies
+            const sprintCandidates = issues.map(issue => ({
+              number: issue.number,
+              title: issue.title,
+              labels: issue.labels.map(l => l.name),
+              updated: issue.updated_at,
+              hasRevenue: issue.labels.some(l => l.name === 'revenue-opportunity')
+            }));
+            
+            return sprintCandidates;
+            
+      - name: AI Analysis
+        id: ai-analysis
+        run: |
+          # Placeholder for AI integration
+          # Could integrate with OpenAI API or other AI services
+          echo "Analyzing sprint composition with AI..."
+          echo "recommendations=AI-generated sprint recommendations" >> $GITHUB_OUTPUT
+          
+      - name: Create Sprint Planning Issue
+        uses: actions/github-script@v6
+        with:
+          script: |
+            const recommendations = "${{ steps.ai-analysis.outputs.recommendations }}";
+            
+            const sprintIssue = await github.rest.issues.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title: `Sprint Planning - Week of ${new Date().toISOString().split('T')[0]}`,
+              body: `## 🤖 AI-Powered Sprint Planning
+              
+              ### Recommended Sprint Composition
+              ${recommendations}
+              
+              ### High-Priority Revenue Items
+              - [ ] Review revenue-opportunity labeled issues
+              - [ ] Check dependencies and blockers
+              - [ ] Validate resource allocation
+              
+              ### Action Items
+              - [ ] Team review of recommendations
+              - [ ] Finalize sprint backlog
+              - [ ] Update project boards
+              
+              ---
+              *Generated automatically every Monday*`,
+              labels: ['sprint-planning', 'automated']
+            });
+            
+            console.log(`Created sprint planning issue #${sprintIssue.data.number}`);
