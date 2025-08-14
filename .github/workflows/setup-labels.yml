@@ -1,69 +1,366 @@
-name: Setup ProgrediSystems Standard Labels
+name: Setup ProgrediSystems Comprehensive Labels
 on:
-  workflow_dispatch:  # Run manually
+  workflow_dispatch:
   repository_dispatch:
     types: [setup-labels]
 
 jobs:
-  create-labels:
+  create-comprehensive-labels:
     runs-on: ubuntu-latest
     steps:
-      - name: Create ProgrediSystems Standard Labels
+      - name: Create Contract Opportunity Labels
         uses: actions/github-script@v7
         with:
           script: |
-            const labels = [
-              // Revenue Labels (Green family)
-              { name: 'revenue-opportunity', color: '22c55e', description: '💰 Potential revenue generating opportunity' },
-              { name: 'contract-opportunity', color: '16a34a', description: '🏛️ Government contract opportunity' },
-              { name: 'client-opportunity', color: '65a30d', description: '🤝 Commercial client opportunity' },
-              { name: 'cost-reduction', color: '84cc16', description: '💵 Reduces operational costs' },
-              
-              // Development Labels (Blue family)
-              { name: 'feature', color: '3b82f6', description: '🚀 New feature development' },
-              { name: 'enhancement', color: '6366f1', description: '⚡ Improve existing functionality' },
-              { name: 'ai-enhancement', color: '8b5cf6', description: '🤖 AI/ML enhancement opportunity' },
-              { name: 'bug', color: 'ef4444', description: '🐛 Bug fix required' },
-              
-              // Defense/Government Labels (Purple family)
-              { name: 'government-rfp', color: '7c3aed', description: '🏛️ Government RFP or contract' },
-              { name: 'cmmc', color: '6d28d9', description: '🛡️ CMMC compliance related' },
-              { name: 'defense-contract', color: '5b21b6', description: '⚔️ Defense/military contract' },
-              { name: 'compliance', color: '4c1d95', description: '📋 Compliance or certification' },
-              
-              // Priority Labels (Traffic light colors)
-              { name: 'priority-critical', color: 'dc2626', description: '🔴 Critical priority - revenue/business impact' },
-              { name: 'priority-high', color: 'ea580c', description: '🟠 High priority' },
-              { name: 'priority-medium', color: 'ca8a04', description: '🟡 Medium priority' },
-              { name: 'priority-low', color: '16a34a', description: '🟢 Low priority' },
-              
-              // Process Labels (Gray family)
-              { name: 'needs-triage', color: '6b7280', description: '🔍 Needs initial review and prioritization' },
-              { name: 'blocked', color: '374151', description: '🚫 Blocked by external dependency' },
-              { name: 'in-review', color: '4b5563', description: '👀 Under review' },
-              { name: 'sprint-ready', color: '059669', description: '✅ Ready for sprint inclusion' }
+            const contractLabels = [
+              { name: 'contract-opportunity', color: '7c3aed', description: '🏛️ Government or formal contract opportunity' },
+              { name: 'government-rfp', color: '6d28d9', description: '🏛️ Government RFP or solicitation' },
+              { name: 'prime-contract', color: '5b21b6', description: '🎯 Prime contractor opportunity' },
+              { name: 'subcontract', color: '4c1d95', description: '🤝 Subcontractor opportunity' },
+              { name: 'idiq-contract', color: '7c2d12', description: '📋 IDIQ or GSA Schedule contract' },
+              { name: 'sbir-sttr', color: '059669', description: '🔬 SBIR/STTR small business research' },
+              { name: 'sole-source', color: '16a34a', description: '✅ Sole source opportunity (high PWin)' },
+              { name: 'limited-competition', color: 'ca8a04', description: '⚖️ Limited competition opportunity' },
+              { name: 'full-competition', color: 'dc2626', description: '⚔️ Full competition opportunity' }
             ];
-
-            let created = 0;
-            let existing = 0;
             
-            for (const label of labels) {
+            console.log('Creating contract opportunity labels...');
+            for (const label of contractLabels) {
               try {
                 await github.rest.issues.createLabel({
                   owner: context.repo.owner,
                   repo: context.repo.repo,
                   ...label
                 });
-                console.log(`✅ Created label: ${label.name}`);
-                created++;
+                console.log(`✅ Created: ${label.name}`);
               } catch (error) {
                 if (error.status === 422) {
                   console.log(`ℹ️ Label ${label.name} already exists`);
-                  existing++;
                 } else {
-                  console.error(`❌ Error creating label ${label.name}:`, error.message);
+                  console.error(`❌ Error creating ${label.name}:`, error.message);
                 }
               }
             }
+
+      - name: Create Revenue Opportunity Labels
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const revenueLabels = [
+              { name: 'revenue-opportunity', color: '22c55e', description: '💰 General revenue generating opportunity' },
+              { name: 'client-opportunity', color: '16a34a', description: '🤝 Commercial client opportunity' },
+              { name: 'business-development', color: '65a30d', description: '📈 Sales and business development' },
+              { name: 'partnership', color: '84cc16', description: '🤝 Strategic partnership opportunity' },
+              { name: 'licensing', color: 'a3e635', description: '📄 Licensing or IP opportunity' },
+              { name: 'business-value', color: 'bef264', description: '💼 General business value (unclear type)' }
+            ];
             
-            console.log(`\n📊 Summary: ${created} labels created, ${existing} already existed`);
+            console.log('Creating revenue opportunity labels...');
+            for (const label of revenueLabels) {
+              try {
+                await github.rest.issues.createLabel({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  ...label
+                });
+                console.log(`✅ Created: ${label.name}`);
+              } catch (error) {
+                if (error.status === 422) {
+                  console.log(`ℹ️ Label ${label.name} already exists`);
+                } else {
+                  console.error(`❌ Error creating ${label.name}:`, error.message);
+                }
+              }
+            }
+
+      - name: Create Feature Development Labels
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const featureLabels = [
+              { name: 'feature', color: '3b82f6', description: '🚀 New feature development' },
+              { name: 'enhancement', color: '6366f1', description: '⚡ Improvement to existing functionality' },
+              { name: 'ai-enhancement', color: '8b5cf6', description: '🤖 AI/ML enhancement opportunity' },
+              { name: 'bug', color: 'ef4444', description: '🐛 Bug fix required' },
+              { name: 'technical-debt', color: '6b7280', description: '🔧 Technical debt or code quality' }
+            ];
+            
+            console.log('Creating feature development labels...');
+            for (const label of featureLabels) {
+              try {
+                await github.rest.issues.createLabel({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  ...label
+                });
+                console.log(`✅ Created: ${label.name}`);
+              } catch (error) {
+                if (error.status === 422) {
+                  console.log(`ℹ️ Label ${label.name} already exists`);
+                } else {
+                  console.error(`❌ Error creating ${label.name}:`, error.message);
+                }
+              }
+            }
+
+      - name: Create Priority Labels
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const priorityLabels = [
+              { name: 'priority-critical', color: 'dc2626', description: '🔴 Critical priority - revenue/business impact' },
+              { name: 'priority-high', color: 'ea580c', description: '🟠 High priority' },
+              { name: 'priority-medium', color: 'ca8a04', description: '🟡 Medium priority' },
+              { name: 'priority-low', color: '16a34a', description: '🟢 Low priority' }
+            ];
+            
+            console.log('Creating priority labels...');
+            for (const label of priorityLabels) {
+              try {
+                await github.rest.issues.createLabel({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  ...label
+                });
+                console.log(`✅ Created: ${label.name}`);
+              } catch (error) {
+                if (error.status === 422) {
+                  console.log(`ℹ️ Label ${label.name} already exists`);
+                } else {
+                  console.error(`❌ Error creating ${label.name}:`, error.message);
+                }
+              }
+            }
+
+      - name: Create Market Segment Labels
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const marketLabels = [
+              { name: 'defense-market', color: '0d9488', description: '⚔️ Defense and military market' },
+              { name: 'commercial-market', color: '14b8a6', description: '🏢 Commercial enterprise market' },
+              { name: 'federal-civilian', color: '2dd4bf', description: '🏛️ Federal civilian agencies' },
+              { name: 'state-local', color: '5eead4', description: '🏙️ State and local government' }
+            ];
+            
+            console.log('Creating market segment labels...');
+            for (const label of marketLabels) {
+              try {
+                await github.rest.issues.createLabel({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  ...label
+                });
+                console.log(`✅ Created: ${label.name}`);
+              } catch (error) {
+                if (error.status === 422) {
+                  console.log(`ℹ️ Label ${label.name} already exists`);
+                } else {
+                  console.error(`❌ Error creating ${label.name}:`, error.message);
+                }
+              }
+            }
+
+      - name: Create Operational Labels
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const operationalLabels = [
+              { name: 'compliance', color: '4b5563', description: '📋 Compliance or certification work' },
+              { name: 'cmmc', color: '6b7280', description: '🛡️ CMMC compliance related' },
+              { name: 'security', color: '374151', description: '🔒 Security audit or assessment' },
+              { name: 'infrastructure', color: '9ca3af', description: '🏗️ Infrastructure or DevOps work' },
+              { name: 'documentation', color: 'd1d5db', description: '📚 Documentation or training' }
+            ];
+            
+            console.log('Creating operational labels...');
+            for (const label of operationalLabels) {
+              try {
+                await github.rest.issues.createLabel({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  ...label
+                });
+                console.log(`✅ Created: ${label.name}`);
+              } catch (error) {
+                if (error.status === 422) {
+                  console.log(`ℹ️ Label ${label.name} already exists`);
+                } else {
+                  console.error(`❌ Error creating ${label.name}:`, error.message);
+                }
+              }
+            }
+
+      - name: Create Process Management Labels
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const processLabels = [
+              { name: 'needs-triage', color: '6366f1', description: '🔍 Needs initial review and prioritization' },
+              { name: 'sprint-ready', color: '4f46e5', description: '✅ Ready for sprint inclusion' },
+              { name: 'sprint-planning', color: '4338ca', description: '📅 Sprint planning related' },
+              { name: 'backlog', color: '3730a3', description: '📋 Product backlog item' },
+              { name: 'blocked', color: '312e81', description: '🚫 Blocked by external dependency' },
+              { name: 'in-review', color: '1e1b4b', description: '👀 Under review' }
+            ];
+            
+            console.log('Creating process management labels...');
+            for (const label of processLabels) {
+              try {
+                await github.rest.issues.createLabel({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  ...label
+                });
+                console.log(`✅ Created: ${label.name}`);
+              } catch (error) {
+                if (error.status === 422) {
+                  console.log(`ℹ️ Label ${label.name} already exists`);
+                } else {
+                  console.error(`❌ Error creating ${label.name}:`, error.message);
+                }
+              }
+            }
+
+      - name: Create Financial Tracking Labels
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const financialLabels = [
+              { name: 'p-and-l-impact', color: '059669', description: '📊 Direct P&L impact' },
+              { name: 'cost-reduction', color: '047857', description: '💵 Reduces operational costs' },
+              { name: 'revenue-blocker', color: 'dc2626', description: '🚫 Blocking revenue generation' },
+              { name: 'roi-tracking', color: '065f46', description: '📈 ROI measurement and tracking' }
+            ];
+            
+            console.log('Creating financial tracking labels...');
+            for (const label of financialLabels) {
+              try {
+                await github.rest.issues.createLabel({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  ...label
+                });
+                console.log(`✅ Created: ${label.name}`);
+              } catch (error) {
+                if (error.status === 422) {
+                  console.log(`ℹ️ Label ${label.name} already exists`);
+                } else {
+                  console.error(`❌ Error creating ${label.name}:`, error.message);
+                }
+              }
+            }
+
+      - name: Create Client Relations Labels
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const clientLabels = [
+              { name: 'client-request', color: 'ec4899', description: '💼 Client requested feature or change' },
+              { name: 'customer-feedback', color: 'f472b6', description: '💬 Based on customer feedback' },
+              { name: 'user-experience', color: 'f9a8d4', description: '🎨 UX improvement' },
+              { name: 'customer-success', color: 'fbcfe8', description: '🎯 Customer success initiative' }
+            ];
+            
+            console.log('Creating client relations labels...');
+            for (const label of clientLabels) {
+              try {
+                await github.rest.issues.createLabel({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  ...label
+                });
+                console.log(`✅ Created: ${label.name}`);
+              } catch (error) {
+                if (error.status === 422) {
+                  console.log(`ℹ️ Label ${label.name} already exists`);
+                } else {
+                  console.error(`❌ Error creating ${label.name}:`, error.message);
+                }
+              }
+            }
+
+      - name: Create Technical Specialization Labels
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const techLabels = [
+              { name: 'constitutional-ai', color: 'f97316', description: '⚔️ Constitutional AI specific work' },
+              { name: 'data-analytics', color: 'fb923c', description: '📊 Data analytics and insights' },
+              { name: 'platform-development', color: 'fdba74', description: '🏗️ Platform architecture work' },
+              { name: 'integration', color: 'fed7aa', description: '🔌 System integration work' }
+            ];
+            
+            console.log('Creating technical specialization labels...');
+            for (const label of techLabels) {
+              try {
+                await github.rest.issues.createLabel({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  ...label
+                });
+                console.log(`✅ Created: ${label.name}`);
+              } catch (error) {
+                if (error.status === 422) {
+                  console.log(`ℹ️ Label ${label.name} already exists`);
+                } else {
+                  console.error(`❌ Error creating ${label.name}:`, error.message);
+                }
+              }
+            }
+
+      - name: Create Competition and Market Labels
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const competitionLabels = [
+              { name: 'competitive-advantage', color: 'e11d48', description: '🏆 Provides competitive advantage' },
+              { name: 'market-expansion', color: 'f43f5e', description: '🌍 Market expansion opportunity' },
+              { name: 'strategic-initiative', color: 'fb7185', description: '🎯 Strategic business initiative' }
+            ];
+            
+            console.log('Creating competition and market labels...');
+            for (const label of competitionLabels) {
+              try {
+                await github.rest.issues.createLabel({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  ...label
+                });
+                console.log(`✅ Created: ${label.name}`);
+              } catch (error) {
+                if (error.status === 422) {
+                  console.log(`ℹ️ Label ${label.name} already exists`);
+                } else {
+                  console.error(`❌ Error creating ${label.name}:`, error.message);
+                }
+              }
+            }
+
+      - name: Create Automation and Workflow Labels
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const automationLabels = [
+              { name: 'automation', color: '8b5cf6', description: '⚡ Automation opportunity' },
+              { name: 'ml-required', color: 'a855f7', description: '🧠 Requires ML/AI implementation' },
+              { name: 'workflow-improvement', color: 'c084fc', description: '🔄 Workflow or process improvement' }
+            ];
+            
+            console.log('Creating automation and workflow labels...');
+            for (const label of automationLabels) {
+              try {
+                await github.rest.issues.createLabel({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  ...label
+                });
+                console.log(`✅ Created: ${label.name}`);
+              } catch (error) {
+                if (error.status === 422) {
+                  console.log(`ℹ️ Label ${label.name} already exists`);
+                } else {
+                  console.error(`❌ Error creating ${label.name}:`, error.message);
+                }
+              }
+            }
