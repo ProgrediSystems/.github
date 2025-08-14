@@ -1,0 +1,71 @@
+name: Revenue Impact Calculator
+on:
+  issues:
+    types: [opened, edited, labeled]
+  
+jobs:
+  calculate-revenue-impact:
+    if: contains(github.event.issue.labels.*.name, 'p-and-l-impact')
+    runs-on: ubuntu-latest
+    steps:
+      - name: Extract Revenue Data
+        id: extract
+        run: |
+          # Parse issue body for revenue values
+          BODY="${{ github.event.issue.body }}"
+          
+          # Extract potential value
+          VALUE=$(echo "$BODY" | grep -oP "Potential Value.*?:\s*\K[^\n]*" || echo "Unknown")
+          
+          # Extract probability
+          PROBABILITY=$(echo "$BODY" | grep -oP "Probability.*?:\s*\K[^\n]*" || echo "Unknown")
+          
+          # Extract timeline
+          TIMELINE=$(echo "$BODY" | grep -oP "Timeline.*?:\s*\K[^\n]*" || echo "Unknown")
+          
+          echo "value=$VALUE" >> $GITHUB_OUTPUT
+          echo "probability=$PROBABILITY" >> $GITHUB_OUTPUT
+          echo "timeline=$TIMELINE" >> $GITHUB_OUTPUT
+          
+      - name: Calculate Expected Value
+        id: calculate
+        run: |
+          # Simple calculation logic (expand as needed)
+          VALUE="${{ steps.extract.outputs.value }}"
+          PROBABILITY="${{ steps.extract.outputs.probability }}"
+          
+          # Add calculation logic here
+          echo "expected_value=Calculated based on $VALUE at $PROBABILITY" >> $GITHUB_OUTPUT
+          
+      - name: Add Revenue Comment
+        uses: actions/github-script@v6
+        with:
+          script: |
+            const value = "${{ steps.extract.outputs.value }}";
+            const probability = "${{ steps.extract.outputs.probability }}";
+            const timeline = "${{ steps.extract.outputs.timeline }}";
+            const expected = "${{ steps.calculate.outputs.expected_value }}";
+            
+            const comment = `## 💰 Revenue Impact Analysis
+            
+            **Potential Value**: ${value}
+            **Probability**: ${probability}
+            **Timeline**: ${timeline}
+            **Expected Value**: ${expected}
+            
+            ---
+            *Automated analysis • Update issue to recalculate*`;
+            
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: comment
+            });
+            
+      - name: Update Project Fields
+        uses: actions/github-script@v6
+        with:
+          script: |
+            // Add logic to update project custom fields
+            console.log("Updating project fields for revenue tracking");
