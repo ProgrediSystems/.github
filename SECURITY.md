@@ -1,30 +1,18 @@
 # Security Policy
 
-## Reporting a Vulnerability
+Thank you for helping keep Progredi Systems and the people who use our products safe.
 
-1. Do NOT open a public issue
-2. Email Security
-3. Include:
-   - Description of the vulnerability
-   - Steps to reproduce
-   - Potential impact
-   - Any suggested fixes
+## Reporting a vulnerability
 
-## Response Time
-- Initial response: Within 24 hours
-- Status update: Every 48 hours
-- Resolution timeline: Based on severity
+Please do not open a public issue, discussion, or pull request for a security problem.
 
-## Security Requirements
-- All code must pass SAST scanning
-- Dependencies must be regularly updated
-- Security patches must be applied within:
-  - Critical: 24 hours
-  - High: 72 hours
-  - Medium: 1 week
-  - Low: Next sprint
+Email **support@progredisystems.com** with a subject line that starts with `[SECURITY]`, and include:
 
-## Compliance
-- NIST 800-53 alignment
-- CMMC Level 2 requirements
-- FISMA compliance
+- the affected product, repository, or URL
+- what the issue is and what an attacker could do with it
+- steps to reproduce, or a proof of concept
+- any fix you would suggest
+
+We will acknowledge your report, keep you informed while we investigate, and tell you when it is resolved.
+
+While you research, please do not access, change, or delete data that is not yours, and give us a reasonable chance to fix the issue before you disclose it publicly.
