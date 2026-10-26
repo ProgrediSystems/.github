@@ -21,7 +21,7 @@
 
 ## Products
 
-Progredi Systems develops focused AI products for structured workflows, cyber intelligence, and measuring AI against the policies that matter to an enterprise — engineered for organizations that require reliability, control, and discipline.
+Progredi Systems develops focused SI products for structured workflows, cyber intelligence, and measuring SI against the policies that matter to an enterprise — engineered for organizations that require reliability, control, and discipline.
 
 | Product | What it does |
 | --- | --- |
