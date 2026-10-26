@@ -7,7 +7,7 @@
 
 <h3 align="center">Intelligence that Transforms.</h3>
 
-<p align="center">AI products built for enterprise, cyber, and mission environments.</p>
+<p align="center">Agentic products built for enterprise, cyber, and mission environments.</p>
 
 <p align="center">
   <a href="https://progredisys.com/?utm_source=github&utm_medium=referral&utm_campaign=org_profile"><b>progredisys.com</b></a>
